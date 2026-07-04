@@ -8,22 +8,25 @@ window.addEventListener('scroll', () => {
   progress.style.width = scrolled + '%';
 }, { passive: true });
 
-// Ticket cards: cursor-reactive glow + subtle 3D tilt
-document.querySelectorAll('.ticket').forEach(card => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    card.style.setProperty('--mx', x + 'px');
-    card.style.setProperty('--my', y + 'px');
-    const rotateX = ((y / rect.height) - 0.5) * -6;
-    const rotateY = ((x / rect.width) - 0.5) * 6;
-    card.style.transform = `translateY(-4px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+// Ticket cards: cursor-reactive glow + subtle 3D tilt (pointer devices only)
+const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+if (supportsHover) {
+  document.querySelectorAll('.ticket').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--mx', x + 'px');
+      card.style.setProperty('--my', y + 'px');
+      const rotateX = ((y / rect.height) - 0.5) * -6;
+      const rotateY = ((x / rect.width) - 0.5) * 6;
+      card.style.transform = `translateY(-4px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
   });
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
-  });
-});
+}
 
 // Animated stat counters in hero
 document.querySelectorAll('.hero-meta strong').forEach(el => {
@@ -56,12 +59,25 @@ document.querySelectorAll('.hero-meta strong').forEach(el => {
   obs.observe(el);
 });
 
+// Keep mobile dropdown perfectly aligned under the header at any breakpoint
+const siteHeader = document.querySelector('.site-header');
+function syncHeaderHeight(){
+  if(siteHeader){
+    document.documentElement.style.setProperty('--header-h', siteHeader.offsetHeight + 'px');
+  }
+}
+syncHeaderHeight();
+window.addEventListener('resize', syncHeaderHeight);
+
 // Mobile nav toggle
 const navToggle = document.querySelector('.nav-toggle');
 const navLinks = document.querySelector('.nav-links');
 if(navToggle){
   navToggle.addEventListener('click', () => {
     navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => navLinks.classList.remove('open'));
   });
 }
 
